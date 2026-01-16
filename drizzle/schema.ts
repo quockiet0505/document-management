@@ -46,30 +46,74 @@ import {
 
    })
    
+   //  FOLDER
+  export const folders = pgTable("folders", {
+    id: uuid("id").defaultRandom().primaryKey(),
+  
+    name: text("name").notNull(),
+  
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id),
+  
+    createdAt: timestamp("created_at").defaultNow(),
+  })
+  
    
      //  DOCUMENTS
+     export const documents = pgTable("documents", {
+      id: uuid("id").defaultRandom().primaryKey(),
     
-   export const documents = pgTable("documents", {
-     id: uuid("id").defaultRandom().primaryKey(),
-     name: text("name").notNull(),
-     mimeType: text("mime_type").notNull(),
-     size: integer("size").notNull(),
-     storageKey: text("storage_key").notNull(),
-     status: text("status").$type<"processing" | "ready" | "error">(),
-   
-     organizationId: uuid("organization_id")
-          .notNull()
-          .references(() => organizations.id),
-   
-     ownerId: uuid("owner_id")
-          .notNull()
-          .references(() => users.id),
-     
-     createdAt: timestamp("created_at").defaultNow(),
-     updatedAt: timestamp("updated_at"),
-   })
-   
-   
+      name: text("name").notNull(),
+      mimeType: text("mime_type").notNull(),
+    
+      // latest file info
+      size: integer("size").notNull(),
+      storageKey: text("storage_key").notNull(),
+    
+      status: text("status")
+        .$type<"processing" | "ready" | "error">()
+        .default("processing"),
+    
+      latestVersion: integer("latest_version").default(1),
+    
+      folderId: uuid("folder_id")
+        .references(() => folders.id),
+    
+      organizationId: uuid("organization_id")
+        .notNull()
+        .references(() => organizations.id),
+    
+      ownerId: uuid("owner_id")
+        .notNull()
+        .references(() => users.id),
+    
+      createdAt: timestamp("created_at").defaultNow(),
+      updatedAt: timestamp("updated_at"),
+      // use for soft delete
+      deletedAt: timestamp("deleted_at"),
+      deletedBy: uuid("deleted_by").references(() => users.id),
+
+    })
+    
+  // DOCUMENT VERSIONS
+  export const documentVersions = pgTable("document_versions", {
+    id: uuid("id").defaultRandom().primaryKey(),
+  
+    documentId: uuid("document_id")
+      .notNull()
+      .references(() => documents.id),
+  
+    version: integer("version").notNull(),
+  
+    storageKey: text("storage_key").notNull(),
+    size: integer("size").notNull(),
+    mimeType: text("mime_type").notNull(),
+  
+    createdAt: timestamp("created_at").defaultNow(),
+  })
+  
+
      //  DOCUMENT SHARES
      //  can access document, not member of org
    
@@ -83,7 +127,10 @@ import {
           .notNull()
           .references(() => users.id),
    
-     permission: text("permission").notNull(), // view | edit
+     permission: text("permission")
+          .$type<"view" | "edit">()
+          .notNull()
+        , // view | edit
      createdAt: timestamp("created_at").defaultNow(),
    })
    

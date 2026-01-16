@@ -3,6 +3,7 @@ import {api} from "encore.dev/api"
 import { OrgService } from "./org.service"
 import { CreateOrgSchema, AddMemberSchema } from "./org.schema"
 import { getAuthData } from "~encore/auth"
+import { requireRole } from "../shared/permissions"
 
 // create org
 export const createOrg = api(
@@ -19,11 +20,19 @@ export const createOrg = api(
 )
 
 // add member to org
+// admin only
 export const addMemberToOrg = api(
      {method: "POST", path:"/v1/organization/members/add", auth:true},
      async(body: {organizationId: string, userId: string, role: "admin" | "member"}) =>{
           const input = AddMemberSchema.parse(body)
           const auth = getAuthData()
+
+           //  permission check
+          await requireRole({
+               userId: auth.userID,
+               organizationId: body.organizationId,
+               roles: ["admin"],
+          })
 
           // only admin can add member
           await OrgService.addMemberOrg({
