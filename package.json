@@ -6,10 +6,20 @@
   "license": "MPL-2.0",
   "type": "module",
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.5.7",
+    "@types/pg": "^8.16.0",
+    "drizzle-kit": "^0.31.8",
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "encore.dev": "^1.53.4"
+    "@keyv/redis": "^5.1.5",
+    "bcryptjs": "^3.0.3",
+    "drizzle-orm": "^0.45.1",
+    "encore.dev": "^1.53.4",
+    "jsonwebtoken": "^9.0.3",
+    "keyv": "^5.5.5",
+    "pg": "^8.17.1",
+    "zod": "^4.3.5"
   }
 }
