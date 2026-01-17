@@ -90,7 +90,7 @@ import {
     
       createdAt: timestamp("created_at").defaultNow(),
       updatedAt: timestamp("updated_at"),
-      // use for soft delete
+      // use for soft delete and only access if deletedBy is null
       deletedAt: timestamp("deleted_at"),
       deletedBy: uuid("deleted_by").references(() => users.id),
 
