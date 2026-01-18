@@ -21,3 +21,8 @@ export interface RegisterInput {
      role: "admin" | "member"
    }
    
+// interface request
+export interface RegisterRequest extends RegisterInput {}
+
+export interface LoginRequest extends LoginInput {}
+

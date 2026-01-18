@@ -10,6 +10,8 @@
       "~encore/*": ["./encore.gen/*"]
     },
 
+    "experimentalDecorators": true,
+
     /* Workspace Settings */
     "composite": true,
 

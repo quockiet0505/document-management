@@ -4,6 +4,7 @@ import {
   documents,
   documentShares,
   organizationMembers,
+  documentMetadata,
 } from "../../drizzle/schema"
 import { and, eq, ilike, isNull } from "drizzle-orm"
 
@@ -129,4 +130,23 @@ export const DocumentsRepo = {
       .limit(params.limit)
       .offset(params.offset)
   },
+
+  // read summary 
+  getDocumentSummary(documentId: string) {
+    return db
+      .select()
+      .from(documentMetadata)
+      .where(eq(documentMetadata.documentId, documentId))
+      .limit(1)
+      .then(r => r[0])
+  },
+
+  // save metadata
+    saveDocumentMetadata(data: {
+      documentId: string
+      extractedText?: string
+      summary?: string
+    }) {
+      return db.insert(documentMetadata).values(data)
+    },
 }

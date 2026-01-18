@@ -1,68 +1,108 @@
-// API documents endpoints
+// app/documents/documents.api.ts
 import { api } from "encore.dev/api"
 import { getAuthData } from "~encore/auth"
 import { DocumentsService } from "./documents.service"
+
 import {
   ListDocumentsSchema,
-  UploadDocumentSchema,
+  CreateDocumentSchema,
   UpdateDocumentSchema,
   SearchDocumentsSchema,
+  GetUploadUrlSchema,
 } from "./documents.schema"
+
+import {
+  ListDocumentsRequest,
+  CreateDocumentRequest,
+  SearchDocumentsRequest,
+  IdRequest,
+  UpdateDocumentRequest,
+  GetUploadUrlRequest,
+} from "./documents.types"
 
 // list
 export const listDocuments = api(
   { method: "POST", path: "/v1/documents", auth: true },
-  async (body: unknown) => {
-    const input = ListDocumentsSchema.parse(body)
+  async (req: ListDocumentsRequest) => {
+    const input = ListDocumentsSchema.parse(req)
     const auth = getAuthData()
     return DocumentsService.listDocuments(auth.userID, input)
   }
 )
 
-// get
+// get by id
 export const getDocument = api(
   { method: "GET", path: "/v1/documents/:id", auth: true },
-  async ({ id }: { id: string }) => {
+  async (req: IdRequest) => {
     const auth = getAuthData()
-    return DocumentsService.getDocumentById(auth.userID, id)
+    return DocumentsService.getDocumentById(auth.userID, req.id)
   }
 )
 
-// upload
-export const uploadDocument = api(
-  { method: "POST", path: "/v1/documents/upload", auth: true },
-  async (body: unknown) => {
-    const input = UploadDocumentSchema.parse(body)
+// create metadata
+export const createDocument = api(
+  { method: "POST", path: "/v1/documents/create", auth: true },
+  async (req: CreateDocumentRequest) => {
+    const input = CreateDocumentSchema.parse(req)
     const auth = getAuthData()
-    return DocumentsService.uploadDocument(auth.userID, input)
+    return DocumentsService.createDocument(auth.userID, input)
+  }
+)
+
+// get upload url
+export const getUploadUrl = api(
+  { method: "POST", path: "/v1/documents/upload-url", auth: true },
+  async (req: GetUploadUrlRequest) => {
+    const input = GetUploadUrlSchema.parse(req)
+    const auth = getAuthData()
+    return DocumentsService.getUploadUrl(auth.userID, input)
+  }
+)
+
+// download
+export const downloadDocument = api(
+  { method: "GET", path: "/v1/documents/:id/download", auth: true },
+  async (req: IdRequest) => {
+    const auth = getAuthData()
+    return DocumentsService.getDownloadUrl(auth.userID, req.id)
   }
 )
 
 // update
 export const updateDocument = api(
   { method: "PUT", path: "/v1/documents/:id", auth: true },
-  async ({ id, ...body }: any) => {
+  async (req: UpdateDocumentRequest) => {
+    const { id, ...body } = req
     const input = UpdateDocumentSchema.parse(body)
     const auth = getAuthData()
     return DocumentsService.updateDocument(auth.userID, id, input)
   }
 )
 
-// delete soft
-export const softDeleteDocument = api(
+// soft delete
+export const deleteDocument = api(
   { method: "DELETE", path: "/v1/documents/:id", auth: true },
-  async ({ id }: { id: string }) => {
+  async (req: IdRequest) => {
     const auth = getAuthData()
-    return DocumentsService.softDeleteDocument(auth.userID, id)
+    return DocumentsService.softDeleteDocument(auth.userID, req.id)
   }
 )
 
 // search
 export const searchDocuments = api(
   { method: "POST", path: "/v1/documents/search", auth: true },
-  async (body: unknown) => {
-    const input = SearchDocumentsSchema.parse(body)
+  async (req: SearchDocumentsRequest) => {
+    const input = SearchDocumentsSchema.parse(req)
     const auth = getAuthData()
     return DocumentsService.search(auth.userID, input)
+  }
+)
+
+// summary
+export const getDocumentSummary = api(
+  { method: "GET", path: "/v1/documents/:id/summary", auth: true },
+  async (req: IdRequest) => {
+    const auth = getAuthData()
+    return DocumentsService.getSummary(auth.userID, req.id)
   }
 )

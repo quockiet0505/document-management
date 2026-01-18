@@ -9,7 +9,8 @@ export const ListDocumentsSchema = z.object({
   offset: z.number().min(0).default(0),
 })
 
-export const UploadDocumentSchema = z.object({
+// create document (metadata after upload)
+export const CreateDocumentSchema = z.object({
   organizationId: z.uuid(),
   folderId: z.uuid().optional(),
   name: z.string().min(1),
@@ -28,4 +29,10 @@ export const SearchDocumentsSchema = z.object({
   keyword: z.string().min(1),
   limit: z.number().min(1).max(50).default(20),
   offset: z.number().min(0).default(0),
+})
+
+
+export const GetUploadUrlSchema = z.object({
+  fileName: z.string().min(1),
+  mimeType: z.string().min(1),
 })

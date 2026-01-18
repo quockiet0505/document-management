@@ -2,11 +2,13 @@ import { api } from "encore.dev/api"
 import { AuthService } from "./auth.service"
 import { RegisterSchema, LoginSchema } from "./auth.schema"
 
+import { RegisterRequest, LoginRequest } from "./auth.types"
+
 // register
 export const register = api(
   { expose: true, method: "POST", path: "/v1/auth/register" },
-  async (body) => {
-    const input = RegisterSchema.parse(body)
+  async (req: RegisterRequest) => {
+    const input = RegisterSchema.parse(req)
     return AuthService.register(input)
   }
 )
@@ -14,8 +16,8 @@ export const register = api(
 // login
 export const login = api(
   { expose: true, method: "POST", path: "/v1/auth/login" },
-  async (body) => {
-    const input = LoginSchema.parse(body)
+  async (req: LoginRequest) => {
+    const input = LoginSchema.parse(req)
     return AuthService.login(input)
   }
 )
