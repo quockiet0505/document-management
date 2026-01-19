@@ -75,7 +75,7 @@ encore test
 ```
 
 ##  Project Structure
-
+```bash
 document-management/
 ├── app/
 │ ├── auth/
@@ -108,7 +108,7 @@ document-management/
 ├── package.json
 ├── tsconfig.json
 └── README.md
-
+```
 ---
 
 ##  API Endpoints
@@ -226,6 +226,7 @@ bun add -d vitest tsx
 # Encore secrets
 encore secret set AUTH_SECRET --dev
 encore secret set AUTH_SECRET --prod
+npm install dotenv
 
 # Database migrations
 npx drizzle-kit generate

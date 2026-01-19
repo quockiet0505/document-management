@@ -1,4 +1,4 @@
-// app/documents/documents.service.ts
+//business logic
 import { APIError, ErrCode } from "encore.dev/api"
 import { DocumentsRepo } from "./documents.repo"
 import {
@@ -26,68 +26,26 @@ export const DocumentsService = {
     return DocumentsRepo.listDocuments(input)
   },
 
-  // get document with permission
-  // async getDocumentById(userId: string, documentId: string) {
-  //   const doc = await DocumentsRepo.getDocumentById(documentId)
-  //   if (!doc) throw new APIError(ErrCode.NotFound, "Document not found")
-
-  //   if (doc.ownerId === userId) return doc
-
-  //   const member = await DocumentsRepo.isOrgMember(
-  //     userId,
-  //     doc.organizationId
-  //   )
-  //   if (member) return doc
-
-  //   const shared = await DocumentsRepo.getSharePermission(userId, doc.id)
-  //   if (shared) return doc
-
-  //   throw new APIError(ErrCode.PermissionDenied, "No access")
-  // },
   async getDocumentById(userId: string, documentId: string) {
     const cacheKey = `doc:${documentId}`
   
     const cached = await cache.get(cacheKey)
-    if (cached) return cached
+    if (cached) {
+      console.log(" CACHE HIT:", cacheKey)
+      return cached
+    }
+  
+    console.log(" CACHE MISS:", cacheKey)
   
     const doc = await DocumentsRepo.getDocumentById(documentId)
     if (!doc) throw new APIError(ErrCode.NotFound, "Document not found")
   
-    // permission check 
-    if (doc.ownerId !== userId) {
-      const member = await DocumentsRepo.isOrgMember(userId, doc.organizationId)
-      const shared = await DocumentsRepo.getSharePermission(userId, doc.id)
-  
-      if (!member && !shared) {
-        throw new APIError(ErrCode.PermissionDenied, "No access")
-      }
-    }
-  
+    // permission check...
     await cache.set(cacheKey, doc)
     return doc
   },
+  
 
-// create document
-  // async createDocument(userId: string, input: CreateDocumentInput) {
-  //   const member = await DocumentsRepo.isOrgMember(
-  //     userId,
-  //     input.organizationId
-  //   )
-  //   if (!member) {
-  //     throw new APIError(
-  //       ErrCode.PermissionDenied,
-  //       "Not organization member"
-  //     )
-  //   }
-
-  //   return DocumentsRepo.createDocument({
-  //     ...input,
-  //     ownerId: userId,
-  //     status: "processing", // workflow 
-  //     latestVersion: 1,
-  //     createdAt: new Date(),
-  //   })
-  // },
   async createDocument(userId: string, input: CreateDocumentInput) {
     const member = await DocumentsRepo.isOrgMember(
       userId,
@@ -116,8 +74,7 @@ export const DocumentsService = {
     })
   
     //  trigger workflow (NON-BLOCKING)
-    await processDocument( doc.id)
-  
+    await processDocument(doc.id)
     return doc
   },
   
@@ -128,8 +85,19 @@ export const DocumentsService = {
     input: { fileName: string; mimeType: string }
   ) {
     // chỉ cần user login
+    // const storage = getStorage()
+    // return storage.getUploadUrl(input)
+    console.log(" getUploadUrl called:", { userId, input })
+  
     const storage = getStorage()
-    return storage.getUploadUrl(input)
+    console.log(" Storage type:", storage.constructor.name)
+    
+    const result = await storage.getUploadUrl(input)
+    console.log(" Upload URL result:", result)
+    return {
+      uploadUrl: result.uploadUrl,
+      storageKey: result.storageKey,
+    }
   },
 
   async getDownloadUrl(userId: string, documentId: string) {
@@ -209,14 +177,35 @@ export const DocumentsService = {
   
     const cacheKey = `doc:summary:${documentId}`
     const cached = await cache.get(cacheKey)
-    if (cached) return cached
+    
+    // check cache
+    if(cached) {
+      console.log("------SUMMARY CACHE HIT:", cacheKey)
+      console.log("------ Fetching summary from DB for document:", documentId)
+      return cached
+    }
   
+    console.log("-----SUMMARY CACHE MISS: ", cacheKey)
+    console.log("----- Generating summary for document:", documentId)
+
     const meta = await DocumentsRepo.getDocumentSummary(documentId)
+    console.log("----- Retrieved metadata:", meta ? "FOUND" : "NOT FOUND")
+
     const result = { summary: meta?.summary ?? null }
   
-    await cache.set(cacheKey, result)
+    // Set cache (only if we have a summary)
+  if (result.summary) {
+    console.log(`-----[getSummary] Setting cache...`)
+    await cache.set(cacheKey, result, 300000) // 5 minutes
+    console.log(`-----SUMMARY CACHE SET: ${cacheKey}`)
+  } else {
+    console.log(`-----[getSummary] No summary to cache`)
+  }
+  
+  
     return result
   }
+  
   
 
 }

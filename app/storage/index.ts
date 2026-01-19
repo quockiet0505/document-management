@@ -4,17 +4,12 @@ import type { StorageProvider } from "./storage.interface"
 
 let storage: StorageProvider
 
-// export function getStorage(): StorageProvider {
-//   if (!storage) {
-//     storage = new LocalStorage()
-//   }
-//   return storage
-// }
-
 export function getStorage(): StorageProvider {
      if (!storage) {
+     
+
        storage =
-         process.env.STORAGE_DRIVER === "s3"
+          "s3" == "s3"
            ? new S3Storage()
            : new LocalStorage()
      }

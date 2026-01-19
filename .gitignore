@@ -13,3 +13,5 @@ bun.lock
 
 .github
 .env
+
+.secrets.local.cue

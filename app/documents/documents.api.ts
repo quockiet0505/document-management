@@ -2,6 +2,8 @@
 import { api } from "encore.dev/api"
 import { getAuthData } from "~encore/auth"
 import { DocumentsService } from "./documents.service"
+import { initDBOS } from "../../app/index"
+initDBOS()
 
 import {
   ListDocumentsSchema,
@@ -19,6 +21,7 @@ import {
   UpdateDocumentRequest,
   GetUploadUrlRequest,
 } from "./documents.types"
+
 
 // list
 export const listDocuments = api(
