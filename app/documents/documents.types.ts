@@ -90,3 +90,19 @@ export interface CreateDocumentData {
   latestVersion: number
   createdAt: Date
 }
+
+// version
+// uploading new version
+export interface UploadDocumentVersionInput{
+  storageKey: string;
+  mimeType: string;
+  size: number;
+}
+
+// api request
+export interface UploadDocumentVersionRequest {
+  id: string;
+  storageKey: string;
+  mineType: string;
+  size: number;
+}

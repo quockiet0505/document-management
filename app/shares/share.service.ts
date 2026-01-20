@@ -29,11 +29,13 @@ export const SharesService = {
       }
     }
 
-    return SharesRepo.createShare({
+     SharesRepo.createShare({
       documentId: input.documentId,
       sharedWithUserId: input.userId,
       permission: input.permission,
     })
+
+    return { success: true }
   },
 
 //   

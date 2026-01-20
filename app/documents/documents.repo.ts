@@ -5,8 +5,9 @@ import {
   documentShares,
   organizationMembers,
   documentMetadata,
+  documentVersions,
 } from "../../drizzle/schema"
-import { and, eq, ilike, isNull } from "drizzle-orm"
+import { and, desc, eq, ilike, isNull } from "drizzle-orm"
 
 import {
   ListDocumentsParams,
@@ -149,4 +150,30 @@ export const DocumentsRepo = {
     }) {
       return db.insert(documentMetadata).values(data)
     },
+
+    // create document version
+    createDocumentVersion(data: {
+      documentId: string,
+      version: number,
+      storageKey: string,
+      size: number,
+      mimeType: string,
+      createdAt?: Date
+    }){
+      return db.insert(documentVersions). 
+        values(data). 
+        returning(). 
+        then(r => r[0])
+    },
+
+
+    // get all versions of a document
+    listDocumentVersions(documentId: string){
+      return db. 
+        select(). 
+        from(documentVersions). 
+        where(eq(documentVersions.documentId, documentId)). 
+        orderBy(desc(documentVersions.version))
+    }
+
 }

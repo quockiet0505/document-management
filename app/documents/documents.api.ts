@@ -11,6 +11,7 @@ import {
   UpdateDocumentSchema,
   SearchDocumentsSchema,
   GetUploadUrlSchema,
+  UploadDocumentVersionSchema
 } from "./documents.schema"
 
 import {
@@ -20,6 +21,7 @@ import {
   IdRequest,
   UpdateDocumentRequest,
   GetUploadUrlRequest,
+  UploadDocumentVersionRequest
 } from "./documents.types"
 
 
@@ -79,6 +81,27 @@ export const updateDocument = api(
     const input = UpdateDocumentSchema.parse(body)
     const auth = getAuthData()
     return DocumentsService.updateDocument(auth.userID, id, input)
+  }
+)
+
+// update document version
+export const uploadNewVersion = api(
+  { method: "POST", path: "/v1/documents/:id/upload-new-version", auth: true},
+  async (req: UploadDocumentVersionRequest) =>{
+    const input = UploadDocumentVersionSchema.parse(req)
+    const auth = getAuthData()
+
+    return DocumentsService.uploadNewVersion(auth.userID, req.id, input)
+  }
+)
+
+// export list document versions
+export const listDocumentVersions = api(
+  { method: "GET", path: "/v1/documents/:id/versions", auth:true},
+  async (req: IdRequest) =>{
+    const auth = getAuthData()
+
+    return DocumentsService.listDocumentVersions(auth.userID, req.id)
   }
 )
 

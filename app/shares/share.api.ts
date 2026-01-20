@@ -44,7 +44,7 @@ export const revokeShare = api(
 )
 
 // list shared documents
-export const listSharedDocuments = api(
+export const listSharedDocumentsWithMe = api(
   { method: "GET", path: "/v1/shares/my-documents", auth: true },
   async () => {
     const auth = getAuthData()
