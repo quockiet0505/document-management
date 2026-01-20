@@ -7,10 +7,11 @@
   "type": "module",
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^20.5.7",
+    "@types/node": "^25.0.9",
     "@types/pg": "^8.16.0",
+    "@vitest/coverage-v8": "4.0.17",
     "drizzle-kit": "^0.31.8",
-    "typescript": "^5.2.2",
+    "typescript": "^5.9.3",
     "vitest": "^4.0.17"
   },
   "dependencies": {
@@ -27,5 +28,9 @@
     "keyv": "^5.5.5",
     "pg": "^8.17.1",
     "zod": "^4.3.5"
+  },
+  "scripts": {
+    "start": "encore run",
+    "build": "echo build step"
   }
 }

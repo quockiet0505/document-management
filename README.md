@@ -233,7 +233,12 @@ npx drizzle-kit generate
 
 # Testing 
 bun add -D vitest
+# run test
+bunx vitest run --coverage
 
 # dotenv
 bun add dotenv
+
+# run docker
+docker compose up
 ```

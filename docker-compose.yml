@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:14
+    container_name: document-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: documents
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # app:
+  #   build: .
+  #   container_name: document-api
+  #   command: bun run start
+  #   ports:
+  #     - "9400:9400"
+  #   environment:
+  #     DATABASE_URL: postgres://postgres:postgres@postgres:5432/documents
+  #     NODE_ENV: production
+  #   depends_on:
+  #     - postgres
+
+volumes:
+  pgdata:
