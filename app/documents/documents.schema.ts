@@ -36,3 +36,12 @@ export const GetUploadUrlSchema = z.object({
   fileName: z.string().min(1),
   mimeType: z.string().min(1),
 })
+
+
+// version upload 
+export const UploadDocumentVersionSchema = z.object({
+  storageKey: z.string().min(1),
+  size: z.number().min(1),
+  mimeType: z.string().min(1),
+})
+

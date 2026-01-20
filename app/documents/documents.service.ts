@@ -6,10 +6,12 @@ import {
   CreateDocumentInput,
   UpdateDocumentInput,
   SearchDocumentsInput,
+  UploadDocumentVersionInput,
 } from "./documents.types"
 import { getStorage } from "../storage"
 import { cache } from "../cache/keyv"
 import { processDocument } from "../jobs/document.workflow"
+import { listDocumentVersions } from "./documents.api"
 // business logic
 
 export const DocumentsService = {
@@ -26,6 +28,12 @@ export const DocumentsService = {
     return DocumentsRepo.listDocuments(input)
   },
 
+  // get list document version
+  async listDocumentVersions(userId: string, documentId: string){
+    return DocumentsRepo.listDocumentVersions(documentId)
+  },
+
+  // get document by id 
   async getDocumentById(userId: string, documentId: string) {
     const cacheKey = `doc:${documentId}`
   
@@ -46,6 +54,7 @@ export const DocumentsService = {
   },
   
 
+  // create document with version
   async createDocument(userId: string, input: CreateDocumentInput) {
     const member = await DocumentsRepo.isOrgMember(
       userId,
@@ -72,9 +81,19 @@ export const DocumentsService = {
       latestVersion: 1,
       createdAt: new Date(),
     })
+
+    // create document version
+    await DocumentsRepo.createDocumentVersion({
+      documentId: doc.id,
+      version: 1,
+      storageKey: input.storageKey,
+      mimeType: input.mimeType,
+      size: input.size,
+      createdAt: new Date(),
+    })
   
     //  trigger workflow (NON-BLOCKING)
-    await processDocument(doc.id)
+    // await processDocument(doc.id)
     return doc
   },
   
@@ -109,7 +128,7 @@ export const DocumentsService = {
     })
   },
 
-// update and delete
+// update 
   async updateDocument(
     userId: string,
     documentId: string,
@@ -134,6 +153,50 @@ export const DocumentsService = {
 
     await DocumentsRepo.updateDocument(documentId, input)
     return { success: true }
+  },
+
+  // upload new version
+  async uploadNewVersion(userId: string, documentId: string, input: UploadDocumentVersionInput){
+      const doc = await this.getDocumentById(userId, documentId)
+
+      // check doc
+      if(!doc){
+        throw new APIError(ErrCode.NotFound, "Document not found")
+      }
+
+      // check permission
+      // only owner or admin can upload new version
+      const member = await DocumentsRepo.isOrgMember(userId, doc.organizationId )
+      if (doc.ownerId != userId && member?.role != "admin"){
+          throw new APIError(ErrCode.PermissionDenied, "Cannot upload new version")
+        }
+
+      // next version
+      const nextVersion = doc.latestVersion +1
+      // create new version
+
+      await DocumentsRepo.createDocumentVersion({
+        documentId: doc.id,
+        version: nextVersion,
+        storageKey: input.storageKey,
+        size: input.size,
+        mimeType: input.mimeType,
+        createdAt: new Date(),
+      })
+
+      // update latest version in document
+      await DocumentsRepo.updateDocument(documentId, {
+        latestVersion: nextVersion,
+        storageKey: input.storageKey,
+        size: input.size,
+        mimeType: input.mimeType,
+        status: "processing",
+      })
+
+      // await processDocument(doc.id)
+
+      return { success: true, newVersion: nextVersion}
+
   },
 
   // soft delete

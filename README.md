@@ -231,4 +231,7 @@ npm install dotenv
 # Database migrations
 npx drizzle-kit generate
 
+# Testing 
+bun add -D vitest
+
 ```
