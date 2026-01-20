@@ -234,4 +234,6 @@ npx drizzle-kit generate
 # Testing 
 bun add -D vitest
 
+# dotenv
+bun add dotenv
 ```

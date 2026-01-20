@@ -8,15 +8,30 @@ import type {
   PresignedDownload,
 } from "./storage.interface"
 
+// import dotenv from "dotenv"
+// import path from "path"
+// // LOAD ENV FIRST!
+// dotenv.config({ 
+//   path: path.resolve(process.cwd(), '.env'),
+//   override: true 
+// })
+
+// console.log("🔧 S3 Storage Config:")
+// console.log("Region:", process.env.AWS_REGION || 'not set')
+// console.log("Bucket:", process.env.AWS_S3_BUCKET || 'not set')
+// console.log("Endpoint:", process.env.AWS_S3_ENDPOINT || 'not set')
+// console.log("Access Key:", process.env.AWS_ACCESS_KEY_ID ? "***SET***" : "NOT SET")
+
+
 const s3 = new S3Client({
-  region: "process.env.AWS_REGION!" ,
+  region: process.env.AWS_REGION! ,
   credentials: {
-    accessKeyId: "process.env.AWS_ACCESS_KEY_ID!" ,
-    secretAccessKey: "process.env.AWS_SECRET_ACCESS_KEY!" ,
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID! ,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY! ,
   },
 })
 
-const BUCKET = "process.env.AWS_S3_BUCKET!"
+const BUCKET = process.env.AWS_S3_BUCKET!
 
 export class S3Storage implements StorageProvider {
   async getUploadUrl(params: {
