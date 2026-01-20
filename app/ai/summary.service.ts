@@ -1,6 +1,18 @@
 import { GoogleGenerativeAI } from "@google/generative-ai"
 
-const genAI = new GoogleGenerativeAI( process.env.GEMINI_API_KEY! )
+import dotenv from "dotenv"
+import path from "path"
+// LOAD ENV FIRST!
+dotenv.config({ 
+  path: path.resolve(process.cwd(), '.env'),
+  override: true 
+})
+
+// check .env GEMINI_API_KEY
+console.log("🔧 Gemini AI Config:")
+console.log("GEMINI API KEY: ", process.env.GEMINI_API_KEY ? "**SET API**" : "NOT SET")
+
+const genAI = new GoogleGenerativeAI( process.env.GEMINI_API_KEY || "no-api-key gemini")
 
 export const SummaryService = {
   async generate(text: string): Promise<string> {
