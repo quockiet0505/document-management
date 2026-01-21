@@ -1,4 +1,4 @@
-// app/documents/documents.api.ts
+// api document
 import { api } from "encore.dev/api"
 import { getAuthData } from "~encore/auth"
 import { DocumentsService } from "./documents.service"

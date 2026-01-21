@@ -17,19 +17,19 @@ import {
 
 export const DocumentsRepo = {
   // check if user is member
-  isOrgMember(userId: string, organizationId: string) {
-    return db
-      .select()
-      .from(organizationMembers)
-      .where(
-        and(
-          eq(organizationMembers.userId, userId),
-          eq(organizationMembers.organizationId, organizationId)
-        )
-      )
-      .limit(1)
-      .then(r => r[0])
-  },
+  // isOrgMember(userId: string, organizationId: string) {
+  //   return db
+  //     .select()
+  //     .from(organizationMembers)
+  //     .where(
+  //       and(
+  //         eq(organizationMembers.userId, userId),
+  //         eq(organizationMembers.organizationId, organizationId)
+  //       )
+  //     )
+  //     .limit(1)
+  //     .then(r => r[0])
+  // },
 
   // get document by id
   getDocumentById(documentId: string) {

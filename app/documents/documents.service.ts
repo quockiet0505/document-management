@@ -10,41 +10,14 @@ import {
 } from "./documents.types"
 import { getStorage } from "../storage"
 import { cache } from "../cache/keyv"
+import { requireRole } from "../shared/permissions"
+import { requireDocumentPermission} from "../shared/document-permissions"
 import { processDocument } from "../jobs/document.workflow"
-import { listDocumentVersions } from "./documents.api"
 // business logic
 
 export const DocumentsService = {
-  // list
-  async listDocuments(userId: string, input: ListDocumentsInput) {
-    const member = await DocumentsRepo.isOrgMember(
-      userId,
-      input.organizationId
-    )
-    if (!member) {
-      throw new APIError(ErrCode.PermissionDenied, "Not org member")
-    }
 
-    return DocumentsRepo.listDocuments(input)
-  },
-
-  // get list document version
-  async listDocumentVersions(userId: string, documentId: string){
-    // check member in org
-    const doc =  await DocumentsRepo.getDocumentById(documentId)
-
-    const member = await DocumentsRepo.isOrgMember(
-      userId,
-      doc.organizationId
-    )
-    
-    if (!member) {
-      throw new APIError(ErrCode.PermissionDenied, "Not org member")
-    }
-    return DocumentsRepo.listDocumentVersions(documentId)
-  },
-
-  // get document by id 
+  // get document by id , get doc, permission check, cache
   async getDocumentById(userId: string, documentId: string) {
     const cacheKey = `doc:${documentId}`
   
@@ -64,21 +37,38 @@ export const DocumentsService = {
     return doc
   },
   
+  // list document
+  async listDocuments(userId: string, input: ListDocumentsInput) {
+    // check permission
+    await requireRole({
+      userId,
+      organizationId: input.organizationId,
+      roles: ["admin", "member"],
+    })
+
+    return DocumentsRepo.listDocuments(input)
+  },
+
+  // get list document version
+  async listDocumentVersions(userId: string, documentId: string) {
+    await requireDocumentPermission({
+      userId,
+      documentId,
+      permission: "view",
+    })
+  
+    return DocumentsRepo.listDocumentVersions(documentId)
+  },
 
   // create document with version
   async createDocument(userId: string, input: CreateDocumentInput) {
-    const member = await DocumentsRepo.isOrgMember(
+    // check permission
+    await requireRole({
       userId,
-      input.organizationId
-    )
-  
-    if (!member) {
-      throw new APIError(
-        ErrCode.PermissionDenied,
-        "Not organization member"
-      )
-    }
-  
+      organizationId: input.organizationId,
+      roles: ["admin", "member"],
+    })
+    
     //  tạo document
     const doc = await DocumentsRepo.createDocument({
       organizationId: input.organizationId,
@@ -110,6 +100,8 @@ export const DocumentsService = {
   
 
 // storage
+
+// get upload url
   async getUploadUrl(
     userId: string,
     input: { fileName: string; mimeType: string }
@@ -130,6 +122,7 @@ export const DocumentsService = {
     }
   },
 
+// get download url
   async getDownloadUrl(userId: string, documentId: string) {
     const doc = await this.getDocumentById(userId, documentId)
 
@@ -139,125 +132,94 @@ export const DocumentsService = {
     })
   },
 
-// update 
+// update document
   async updateDocument(
     userId: string,
     documentId: string,
     input: UpdateDocumentInput
   ) {
-    const doc = await this.getDocumentById(userId, documentId)
-
-    if (doc.ownerId !== userId) {
-      const member = await DocumentsRepo.isOrgMember(
-        userId,
-        doc.organizationId
-      )
-      const share = await DocumentsRepo.getSharePermission(userId, doc.id)
-
-      if (member?.role !== "admin" && share?.permission !== "edit") {
-        throw new APIError(
-          ErrCode.PermissionDenied,
-          "Cannot update document"
-        )
-      }
-    }
+    // check permission
+    await requireDocumentPermission({
+      userId,
+      documentId,
+      permission: "edit",
+    })
 
     await DocumentsRepo.updateDocument(documentId, input)
     return { success: true }
   },
 
   // upload new version
-  async uploadNewVersion(userId: string, documentId: string, input: UploadDocumentVersionInput){
-      const doc = await this.getDocumentById(userId, documentId)
+  async uploadNewVersion(
+    userId: string,
+    documentId: string,
+    input: UploadDocumentVersionInput
+  ) {
+    const doc = await requireDocumentPermission({
+      userId,
+      documentId,
+      permission: "upload",
+    })
 
-      // check doc
-      if(!doc){
-        throw new APIError(ErrCode.NotFound, "Document not found")
-      }
-
-      // check permission
-      // only owner or admin can upload new version
-      const member = await DocumentsRepo.isOrgMember(userId, doc.organizationId )
-      if (doc.ownerId != userId && member?.role != "admin"){
-          throw new APIError(ErrCode.PermissionDenied, "Cannot upload new version")
-        }
-
-      // next version
-      const nextVersion = doc.latestVersion +1
-      // create new version
-
-      await DocumentsRepo.createDocumentVersion({
-        documentId: doc.id,
-        version: nextVersion,
-        storageKey: input.storageKey,
-        size: input.size,
-        mimeType: input.mimeType,
-        createdAt: new Date(),
-      })
-
-      // update latest version in document
-      await DocumentsRepo.updateDocument(documentId, {
-        latestVersion: nextVersion,
-        storageKey: input.storageKey,
-        size: input.size,
-        mimeType: input.mimeType,
-        status: "processing",
-      })
-
-      // await processDocument(doc.id)
-
-      return { success: true, newVersion: nextVersion}
-
+    const nextVersion = (doc.latestVersion || 0) + 1
+  
+    await DocumentsRepo.createDocumentVersion({
+      documentId,
+      version: nextVersion,
+      storageKey: input.storageKey,
+      size: input.size,
+      mimeType: input.mimeType,
+      createdAt: new Date(),
+    })
+  
+    await DocumentsRepo.updateDocument(documentId, {
+      latestVersion: nextVersion,
+      storageKey: input.storageKey,
+      size: input.size,
+      mimeType: input.mimeType,
+      status: "processing",
+    })
+  
+    return { success: true, newVersion: nextVersion }
   },
 
   // soft delete
   async softDeleteDocument(userId: string, documentId: string) {
-    const doc = await this.getDocumentById(userId, documentId)
-
-    const member = await DocumentsRepo.isOrgMember(
+    await requireDocumentPermission({
       userId,
-      doc.organizationId
-    )
-
-    if (doc.ownerId !== userId && member?.role !== "admin") {
-      throw new APIError(
-        ErrCode.PermissionDenied,
-        "Cannot delete document"
-      )
-    }
-
+      documentId,
+      permission: "delete",
+    })
+  
     await DocumentsRepo.softDeleteDocument(documentId, userId)
     return { success: true }
-  },
+  }
+  ,
 
   // search
   async search(userId: string, input: SearchDocumentsInput) {
-    const member = await DocumentsRepo.isOrgMember(
+    // check permission
+    await requireRole({
       userId,
-      input.organizationId
-    )
-    if (!member) {
-      throw new APIError(ErrCode.PermissionDenied, "Not org member")
-    }
+      organizationId: input.organizationId,
+      roles: ["admin", "member"],
+    })
+    
 
     return DocumentsRepo.searchDocuments(input)
   },
 
   // get summary
   // use cache
-
   async getSummary(userId: string, documentId: string) {
 
-    const doc = await this.getDocumentById(userId, documentId)
-    // check member in organization
-    const member = await DocumentsRepo.isOrgMember(
+    // check permission
+    await requireDocumentPermission({
       userId,
-      doc.organizationId
-    )
-    if (!member) {
-      throw new APIError(ErrCode.PermissionDenied, "Not org member")
-    }
-  
+      documentId,
+      permission: "view",
+    })
+    
     const cacheKey = `doc:summary:${documentId}`
     const cached = await cache.get(cacheKey)
     

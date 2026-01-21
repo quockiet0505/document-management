@@ -6,6 +6,12 @@ vi.mock("encore.dev/api", async () => {
   return mod
 })
 
+// mock AuthRepo
+vi.mock("../app/auth/auth.repo", async () => {
+  const mod = await import("./mocks/auth.repo")
+  return mod
+})
+
 //  mock storage
 vi.mock("../app/storage", async () => {
   const mod = await import("./mocks/storage")
@@ -29,3 +35,16 @@ vi.mock("../app/documents/documents.repo", async () => {
   const mod = await import("./mocks/documents.repo")
   return mod
 })
+
+// check permission
+vi.mock("../app/shared/permissions", () => ({
+  requireRole: vi.fn(),
+}))
+
+// check document permission
+vi.mock("../app/shared/document-permissions", () => ({
+  requireDocumentPermission: vi.fn(),
+}))
+
+
+//  ------------------

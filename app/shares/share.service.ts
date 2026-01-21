@@ -4,54 +4,41 @@ import { SharesRepo } from "./share.repo"
 import { DocumentsRepo } from "../documents/documents.repo"
 import { ShareDocumentInput } from "./share.types"
 
+// SharesService.ts
+import { requireDocumentPermission } from "../shared/document-permissions"
+
 export const SharesService = {
   async shareDocument(
     actorUserId: string,
     input: ShareDocumentInput
   ) {
-    const doc = await DocumentsRepo.getDocumentById(input.documentId)
-    if (!doc) {
-      throw new APIError(ErrCode.NotFound, "Document not found")
-    }
+    await requireDocumentPermission({
+      userId: actorUserId,
+      documentId: input.documentId,
+      permission: "delete", // owner or admin
+    })
 
-    // owner or org admin only
-    if (doc.ownerId !== actorUserId) {
-      const member = await DocumentsRepo.isOrgMember(
-        actorUserId,
-        doc.organizationId
-      )
-
-      if (member?.role !== "admin") {
-        throw new APIError(
-          ErrCode.PermissionDenied,
-          "Cannot share this document"
-        )
-      }
-    }
-
-     SharesRepo.createShare({
+    await SharesRepo.createShare({
       documentId: input.documentId,
       sharedWithUserId: input.userId,
-      permission: input.permission,
+      permission: input.permission, // view | edit
     })
 
     return { success: true }
   },
 
-//   
+//  delete share 
   async revokeShare(actorUserId: string, shareId: string) {
     const share = await SharesRepo.findShareById(shareId)
     if (!share) {
       throw new APIError(ErrCode.NotFound, "Share not found")
     }
 
-    const doc = await DocumentsRepo.getDocumentById(share.documentId)
-    if (!doc || doc.ownerId !== actorUserId) {
-      throw new APIError(
-        ErrCode.PermissionDenied,
-        "Cannot revoke share"
-      )
-    }
+    await requireDocumentPermission({
+      userId: actorUserId,
+      documentId: share.documentId,
+      permission: "delete",
+    })
 
     await SharesRepo.deleteShare(shareId)
     return { success: true }
