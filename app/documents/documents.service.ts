@@ -30,6 +30,17 @@ export const DocumentsService = {
 
   // get list document version
   async listDocumentVersions(userId: string, documentId: string){
+    // check member in org
+    const doc =  await DocumentsRepo.getDocumentById(documentId)
+
+    const member = await DocumentsRepo.isOrgMember(
+      userId,
+      doc.organizationId
+    )
+    
+    if (!member) {
+      throw new APIError(ErrCode.PermissionDenied, "Not org member")
+    }
     return DocumentsRepo.listDocumentVersions(documentId)
   },
 
@@ -236,7 +247,16 @@ export const DocumentsService = {
   // use cache
 
   async getSummary(userId: string, documentId: string) {
-    await this.getDocumentById(userId, documentId)
+
+    const doc = await this.getDocumentById(userId, documentId)
+    // check member in organization
+    const member = await DocumentsRepo.isOrgMember(
+      userId,
+      doc.organizationId
+    )
+    if (!member) {
+      throw new APIError(ErrCode.PermissionDenied, "Not org member")
+    }
   
     const cacheKey = `doc:summary:${documentId}`
     const cached = await cache.get(cacheKey)
@@ -244,7 +264,7 @@ export const DocumentsService = {
     // check cache
     if(cached) {
       console.log("------SUMMARY CACHE HIT:", cacheKey)
-      console.log("------ Fetching summary from DB for document:", documentId)
+      console.log("------ Returning summary from DB for document:", documentId)
       return cached
     }
   
@@ -257,18 +277,15 @@ export const DocumentsService = {
     const result = { summary: meta?.summary ?? null }
   
     // Set cache (only if we have a summary)
-  if (result.summary) {
-    console.log(`-----[getSummary] Setting cache...`)
-    await cache.set(cacheKey, result, 300000) // 5 minutes
-    console.log(`-----SUMMARY CACHE SET: ${cacheKey}`)
-  } else {
-    console.log(`-----[getSummary] No summary to cache`)
-  }
-  
-  
-    return result
-  }
-  
+    if (result.summary) {
+      console.log(`-----[getSummary] Setting cache...`)
+      await cache.set(cacheKey, result, 300000) // 5 minutes
+      console.log(`-----SUMMARY CACHE SET: ${cacheKey}`)
+    } else {
+      console.log(`-----[getSummary] No summary to cache`)
+    }
+      return result
+    }
   
 
 }

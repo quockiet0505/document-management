@@ -1,26 +1,31 @@
-// test
 import { vi } from "vitest"
 
-export const mockUserId = "test-user-1111"
-export const mockOrgId = "test-org-2222"
-export const mockDocId = "test-doc-3333"
+// mock encore
+vi.mock("encore.dev/api", async () => {
+  const mod = await import("./mocks/encore")
+  return mod
+})
 
-// Mock cache
-export const mockCache = {
-  get: vi.fn(),
-  set: vi.fn(),
-  delete: vi.fn(),
-  clear: vi.fn(),
-}
+//  mock storage
+vi.mock("../app/storage", async () => {
+  const mod = await import("./mocks/storage")
+  return mod
+})
 
-// Mock storage
-export const mockStorage = {
-  getUploadUrl: vi.fn().mockResolvedValue({
-    uploadUrl: "https://mock-storage/upload-url",
-    storageKey: "mock-document-key",
-  }),
-  getDownloadUrl: vi.fn().mockResolvedValue({
-    downloadUrl: "https://mock-storage/download-url",
-    expiresIn: 300
-  }),
-}
+// mock cache
+vi.mock("../app/cache/keyv", async () => {
+  const mod = await import("./mocks/cache")
+  return mod
+})
+
+// mock jobs
+vi.mock("../app/jobs/document.workflow", async () => {
+  const mod = await import("./mocks/jobs")
+  return mod
+})
+
+// mock document repo
+vi.mock("../app/documents/documents.repo", async () => {
+  const mod = await import("./mocks/documents.repo")
+  return mod
+})
