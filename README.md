@@ -81,6 +81,7 @@ document-management/
 │ ├── auth/
 │ ├── organizations/
 │ ├── documents/
+| |-- folders/
 │ ├── shares/
 │ ├── storage/
 │ ├── jobs/

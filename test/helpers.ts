@@ -13,10 +13,10 @@ vi.mock("../app/auth/auth.repo", async () => {
 })
 
 //  mock storage
-vi.mock("../app/storage", async () => {
-  const mod = await import("./mocks/storage")
-  return mod
-})
+// vi.mock("../app/storage", async () => {
+//   const mod = await import("./mocks/storage")
+//   return mod
+// })
 
 // mock cache
 vi.mock("../app/cache/keyv", async () => {
@@ -36,15 +36,3 @@ vi.mock("../app/documents/documents.repo", async () => {
   return mod
 })
 
-// check permission
-vi.mock("../app/shared/permissions", () => ({
-  requireRole: vi.fn(),
-}))
-
-// check document permission
-vi.mock("../app/shared/document-permissions", () => ({
-  requireDocumentPermission: vi.fn(),
-}))
-
-
-//  ------------------
