@@ -268,22 +268,29 @@ Create a `.env` file based on `.env.example`.
 Example:
 
 ```env
-# App
-NODE_ENV=development
-PORT=9400
+# Auth
+AUTH_SECRET=your-super-secret-key
+
+# Storage 
+STORAGE_DRIVER=s3 
+
+# Local Storage (if use local)
+LOCAL_STORAGE_BASE_URL=http://localhost:4000
+LOCAL_STORAGE_PATH=./uploads
+
+# S3 Configuration 
+AWS_REGION=your-region                    
+AWS_S3_BUCKET=your-bucket       
+AWS_ACCESS_KEY_ID=your-access-key
+AWS_SECRET_ACCESS_KEY=your-secret-access-key
+
+# Gemini
+GEMINI_API_KEY=your-api-key
+GEMINI_MODEL=your-gemini-model
+
+# Cache
+CACHE_DRIVER=memory
 
 # Database
-DATABASE_URL=postgres://postgres:postgres@postgres:5432/documents
+DBOS_SYSTEM_DATABASE_URL=postgresql://postgres:your-password@localhost:5432/dbos_system
 
-# Auth
-AUTH_SECRET=your-secret-key
-
-# Storage
-STORAGE_DRIVE=s3
-AWS_REGION=us-east-1
-AWS_S3_BUCKET=your-bucket
-AWS_ACCESS_KEY_ID=xxx
-AWS_SECRET_ACCESS_KEY=xxx
-
-# AI
-GEMINI_API_KEY=xxx
