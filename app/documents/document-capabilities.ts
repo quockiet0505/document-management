@@ -1,7 +1,7 @@
 
-// Upload rules
-export const UPLOAD_ALLOWED_MIME_TYPES = [
-     // PDF
+  // Upload rules
+  export const UPLOAD_ALLOWED_MIME_TYPES = [
+      // PDF
      "application/pdf",
    
      // Word

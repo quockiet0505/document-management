@@ -102,7 +102,7 @@ export const DocumentsService = {
     })
   
     //  trigger workflow (NON-BLOCKING)
-    // await processDocument(doc.id)
+    await processDocument(doc.id)
     return doc
   },
   

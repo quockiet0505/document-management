@@ -4,12 +4,13 @@ import { SummaryService } from "../ai/summary.service"
 
 
 // STEP FUNCTIONS 
+// read file dox
 import mammoth from "mammoth"
 import { getStorage } from "../storage"
-import { downloadFileAsBuffer } from "../external/file.helper"
+import { downloadFileAsUint8Array } from "../external/file.helper"
 
-
-const { PDFParse } = require('pdf-parse');
+// read pdf
+import { PDFParse } from 'pdf-parse'
 
 // extract text from document
 async function extractText(docId: string) {
@@ -20,24 +21,32 @@ async function extractText(docId: string) {
     storageKey: doc.storageKey,
   })
 
-  const buffer = await downloadFileAsBuffer(downloadUrl)
+  const buffer = await downloadFileAsUint8Array(downloadUrl)
 
   switch (doc.mimeType) {
     case "application/pdf": {
-      const data = await PDFParse(buffer)
-      return data.text
+      const data = new PDFParse(buffer)
+      const result = await data.getText();
+	    console.log(result.text);
+
+      return result.text
     }
 
+    // read docx
     case "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {
-      const result = await mammoth.extractRawText({ buffer })
+      const nodeBuffer = Buffer.from(buffer)
+      const result = await mammoth.extractRawText({ buffer: nodeBuffer })
       return result.value
     }
 
-    case "text/plain":
-      return buffer.toString("utf-8")
+    // read doc
+    case "text/plain": {
+      return new TextDecoder("utf-8").decode(buffer)
+    }
 
     default:
       throw new Error(`Unsupported mime type: ${doc.mimeType}`)
+
   }
 }
 

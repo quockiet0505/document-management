@@ -26,26 +26,26 @@ export async function convertPdfToDocxFromBuffer(
      fileName = "input.pdf"
    ): Promise<Buffer> {
    
-     // 1. Tạo file tạm
+     // Tạo file tạm
      const tmpDir = os.tmpdir()
      const pdfPath = path.join(tmpDir, `${Date.now()}-${fileName}`)
      const docxPath = pdfPath.replace(".pdf", ".docx")
    
      await fs.writeFile(pdfPath, pdfBuffer)
    
-     // 2. Convert bằng FILE PATH
+     //  Convert bằng FILE PATH
      const result = await convertapi.convert(
        "docx",
        { File: pdfPath },
        "pdf"
      )
    
-     // 3. Download file kết quả
+     //  Download file kết quả
      await result.saveFiles(tmpDir)
    
      const docxBuffer = await fs.readFile(docxPath)
    
-     // 4. Cleanup
+     // Cleanup
      await fs.unlink(pdfPath)
      await fs.unlink(docxPath)
    

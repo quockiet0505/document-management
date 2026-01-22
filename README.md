@@ -132,6 +132,16 @@ document-management/
 - **DELETE** `/v1/shares/:id` – Revoke share
 - **GET** `/v1/shares/my-documents` – Documents shared with me
 
+
+### Document Conversion (PDF → DOCX)
+- API endpoints are provided for PDF to DOCX conversion.
+- Conversion is designed to be executed via a background worker or external service.
+- The Encore service acts as an orchestrator and stores conversion results in object storage.
+- Current implementation focuses on API design and permission handling.
+
+- **POST** `/v1/documents/:id/convert` - Convert file pdf -> word
+- **GET**  `/v1/documents/:id/download-converted` - Download the converted file 
+
 ---
 
 ##  Authentication & Authorization
@@ -189,14 +199,14 @@ Workflow execution is **durable & resumable**.
 
 ---
 
-##  Testing
+## Testing
 
-- Framework: **Vitest**
-- Covers:
-  - Auth
-  - Documents
-  - Shares
-- Target coverage: **≥ 80%**
+- Framework: Vitest
+- Test types:
+  - Unit tests for business logic & permissions
+  - Integration tests for API endpoints
+- External services (AI, Storage, Jobs) are mocked
+- Target coverage: ≥ 80%
 
 ##  Required Libraries & Installation
 
@@ -238,10 +248,13 @@ bun add -D vitest
 bunx vitest run --coverage
 
 # dotenv
+# Used for loading environment variables in local development and scripts
 bun add dotenv
 
+# PDF text extraction (for document summary)
 bun add pdf-parse
 
+# DOCX text extraction
 bun add mammoth
 
 # run docker
@@ -298,3 +311,76 @@ CACHE_DRIVER=memory
 # Database
 DBOS_SYSTEM_DATABASE_URL=postgresql://postgres:your-password@localhost:5432/dbos_system
 
+# PDF
+CONVERTAPI_SECRET=your-convertapi-secret
+```
+# How to Get Required API Keys & Credentials
+
+This document contains instructions for obtaining all external API keys
+used in this project. Follow only this file to complete the setup.
+
+---
+
+## 1. AWS S3 Credentials
+
+Used for document storage.
+
+### Steps
+
+1. Visit the AWS website  
+   https://aws.amazon.com/
+
+2. Sign in to the **AWS Management Console**
+
+3. Open **IAM (Identity and Access Management)**
+
+4. Create a new **IAM User**
+   - Enable **Programmatic access**
+
+5. Attach permissions
+   - `AmazonS3FullAccess`  
+     *(or a restricted custom policy)*
+
+6. After creation, copy:
+   - **Access Key ID**
+   - **Secret Access Key**
+
+---
+
+## 2. Gemini API Key
+
+Used for AI document summarization.
+
+### Steps
+
+1. Visit **Google AI Studio**  
+   https://aistudio.google.com
+
+2. Sign in with your Google account
+
+3. Create a new **API Key**
+
+4. Copy the generated key
+
+---
+
+## 3. ConvertAPI Key (Optional)
+
+Used for PDF → DOCX conversion.
+
+### Steps
+
+1. Visit ConvertAPI  
+   https://www.convertapi.com
+
+2. Create a free account
+
+3. Copy the **API Secret** from the dashboard
+
+---
+
+## Notes
+
+- Do not commit API keys to source control.
+- Store secrets securely using environment variables or secret managers.
+- Rotate keys if they are exposed or compromised.
