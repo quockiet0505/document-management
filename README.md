@@ -41,10 +41,6 @@ This project is designed as a **learning & evaluation project**, not connected t
 
 When you have [installed Encore](https://encore.dev/docs/ts/install), you can create a new Encore application and clone this example with this command.
 
-```bash
-encore app create my-app-name --example=ts/empty
-```
-
 ## Running locally
 ```bash
 encore run
@@ -78,41 +74,45 @@ encore test
 ```bash
 document-management/
 ├── app/
-│ ├── auth/
-│ ├── organizations/
-│ ├── documents/
-| |-- folders/
-│ ├── shares/
-│ ├── storage/
-│ ├── jobs/
-│ ├── ai/
-│ ├── shared/
-│ └── main.ts
+│   ├── ai/
+│   ├── auth/
+│   ├── cache/
+│   ├── documents/
+│   ├── external/
+│   ├── folders/
+│   ├── jobs/
+│   ├── local-upload/
+│   ├── organizations/
+│   ├── shared/
+│   ├── shares/
+│   ├── storage/
+│   └── main.ts
 │
 ├── drizzle/
-│ ├── schema.ts
-│ └── migrations/
+│   ├── schema.ts
+│   └── migrations/
 │
 ├── test/
-│ ├── integration.ts
-│ ├── unit.ts
-│ ├── 
-│ └── helpers.ts
+│   ├── integration/
+│   ├── unit/
+│   └── helpers.ts
 │
-├── docker/
-│ ├── Dockerfile
-│ └── docker-compose.yml
+│── Dockerfile
+│── docker-compose.yml
 │
 ├── .env
-├── .env.example
+├── vitest.config.ts
 ├── drizzle.config.ts
 ├── package.json
 ├── tsconfig.json
 └── README.md
+
 ```
 ---
 
-##  API Endpoints
+##  API Endpoints (CORE)
+- Below are the main/core API endpoints.
+- Additional internal and supporting endpoints exist but are omitted for brevity.
 
 ###  Documents
 
@@ -165,7 +165,7 @@ A **DBOS workflow** processes uploaded documents:
 1. Extract text via external API
 2. Generate AI summary (Gemini)
 3. Save metadata (text + summary)
-4. Update document status → `ready`
+4. Update document status -> `ready`
 
 Workflow execution is **durable & resumable**.
 
@@ -243,3 +243,47 @@ bun add dotenv
 # run docker
 docker compose up
 ```
+## Running with Docker (Recommended)
+
+This project provides a Docker setup for local development.
+
+### Requirements
+- Docker
+- Docker Compose
+
+### Notes
+- PostgreSQL runs inside Docker
+- AWS S3 and Gemini AI are external managed services
+- These services are accessed via API keys in `.env` and are not containerized
+
+### Start services
+```bash
+docker compose up --build
+```
+
+## Environment Variables
+
+Create a `.env` file based on `.env.example`.
+
+Example:
+
+```env
+# App
+NODE_ENV=development
+PORT=9400
+
+# Database
+DATABASE_URL=postgres://postgres:postgres@postgres:5432/documents
+
+# Auth
+AUTH_SECRET=your-secret-key
+
+# Storage
+STORAGE_DRIVE=s3
+AWS_REGION=us-east-1
+AWS_S3_BUCKET=your-bucket
+AWS_ACCESS_KEY_ID=xxx
+AWS_SECRET_ACCESS_KEY=xxx
+
+# AI
+GEMINI_API_KEY=xxx

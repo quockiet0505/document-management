@@ -13,17 +13,14 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
-  # app:
-  #   build: .
-  #   container_name: document-api
-  #   command: bun run start
-  #   ports:
-  #     - "9400:9400"
-  #   environment:
-  #     DATABASE_URL: postgres://postgres:postgres@postgres:5432/documents
-  #     NODE_ENV: production
-  #   depends_on:
-  #     - postgres
+  app:
+    build: .
+    ports:
+      - "9400:9400"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
 
 volumes:
   pgdata:
