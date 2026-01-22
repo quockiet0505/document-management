@@ -18,10 +18,8 @@ console.log("Storage Drive:", process.env.STORAGE_DRIVE || 'not set')
 
 export function getStorage(): StorageProvider {
      if (!storage) {
-     
-
        storage =
-          ("s3" == process.env.STORAGE_DRIVE) 
+          ("s3" == "s3") 
            ? new S3Storage()
            : new LocalStorage()
      }

@@ -15,6 +15,13 @@
       "when": 1768788768058,
       "tag": "0001_unknown_miss_america",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1769052452785,
+      "tag": "0002_empty_wonder_man",
+      "breakpoints": true
     }
   ]
 }

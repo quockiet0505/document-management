@@ -9,10 +9,18 @@ import {
   UploadDocumentVersionInput,
 } from "./documents.types"
 import { getStorage } from "../storage"
+
 import { cache } from "../cache/keyv"
+import { invalidateDocumentCache } from "../cache/helper"
+
 import { requireRole } from "../shared/permissions"
 import { requireDocumentPermission} from "../shared/document-permissions"
 import { processDocument } from "../jobs/document.workflow"
+
+import { canUpload, canSummary, canConvertToDocx } from "./document-capabilities"
+import { convertPdfToDocxFromBuffer } from "../external/pdf.convert"
+import { downloadFileAsBuffer } from "../external/file.helper"
+
 // business logic
 
 export const DocumentsService = {
@@ -100,27 +108,21 @@ export const DocumentsService = {
   
 
 // storage
-
 // get upload url
-  async getUploadUrl(
-    userId: string,
-    input: { fileName: string; mimeType: string }
-  ) {
-    // chỉ cần user login
-    // const storage = getStorage()
-    // return storage.getUploadUrl(input)
-    console.log(" getUploadUrl called:", { userId, input })
-  
-    const storage = getStorage()
-    console.log(" Storage type:", storage.constructor.name)
-    
-    const result = await storage.getUploadUrl(input)
-    console.log(" Upload URL result:", result)
-    return {
-      uploadUrl: result.uploadUrl,
-      storageKey: result.storageKey,
-    }
-  },
+ 
+async getUploadUrl(
+  userId: string,
+  input: { fileName: string; mimeType: string; size?: number }
+) {
+  if (!canUpload(input.mimeType, input.size)) {
+    throw new APIError(
+      ErrCode.InvalidArgument,
+      "File type or size is not allowed"
+    )
+  }
+  const storage = getStorage()
+  return storage.getUploadUrl(input)
+},
 
 // get download url
   async getDownloadUrl(userId: string, documentId: string) {
@@ -146,6 +148,10 @@ export const DocumentsService = {
     })
 
     await DocumentsRepo.updateDocument(documentId, input)
+
+    // delete cache
+    await invalidateDocumentCache(documentId)
+    
     return { success: true }
   },
 
@@ -160,6 +166,14 @@ export const DocumentsService = {
       documentId,
       permission: "upload",
     })
+
+    // check mime type
+    if (!canUpload(input.mimeType, input.size)) {
+      throw new APIError(
+        ErrCode.InvalidArgument,
+        "This file type is not allowed to upload"
+      )
+    }
 
     const nextVersion = (doc.latestVersion || 0) + 1
   
@@ -179,6 +193,9 @@ export const DocumentsService = {
       mimeType: input.mimeType,
       status: "processing",
     })
+
+    // invalidate cache
+    await invalidateDocumentCache(documentId)
   
     return { success: true, newVersion: nextVersion }
   },
@@ -192,9 +209,12 @@ export const DocumentsService = {
     })
   
     await DocumentsRepo.softDeleteDocument(documentId, userId)
+
+    // invalidate cache
+    await invalidateDocumentCache(documentId)
+
     return { success: true }
-  }
-  ,
+  },
 
   // search
   async search(userId: string, input: SearchDocumentsInput) {
@@ -214,11 +234,19 @@ export const DocumentsService = {
   async getSummary(userId: string, documentId: string) {
 
     // check permission
-    await requireDocumentPermission({
+    const doc = await requireDocumentPermission({
       userId,
       documentId,
       permission: "view",
     })
+
+    // check mime type support 
+    if (!canSummary(doc.mimeType)) {
+      throw new APIError(
+        ErrCode.InvalidArgument,
+        "This file type does not support summary"
+      )
+    }
     
     const cacheKey = `doc:summary:${documentId}`
     const cached = await cache.get(cacheKey)
@@ -247,7 +275,82 @@ export const DocumentsService = {
       console.log(`-----[getSummary] No summary to cache`)
     }
       return result
-    }
-  
+    },
 
-}
+    // convert document
+    async convertDocument(userId: string, documentId: string) {
+      const doc = await requireDocumentPermission({
+        userId,
+        documentId,
+        permission: "edit",
+      })
+    
+      if (doc.mimeType !== "application/pdf") {
+        throw new APIError(
+          ErrCode.InvalidArgument,
+          "Only PDF can be converted"
+        )
+      }
+    
+      //  Lấy PDF từ S3
+      const { downloadUrl } = await getStorage().getDownloadUrl({
+        storageKey: doc.storageKey,
+      })
+    
+      const pdfBuffer = await downloadFileAsBuffer(downloadUrl)
+    
+      //  Convert
+      const docxBuffer = await convertPdfToDocxFromBuffer(
+        pdfBuffer,
+        `${doc.name}.pdf`
+      )
+    
+      //  Upload DOCX
+      const storage = getStorage()
+      const { storageKey } = await storage.uploadBuffer({
+        buffer: docxBuffer,
+        fileName: `${doc.name}.docx`,
+        mimeType:
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      })
+    
+      //  Update DB
+      await DocumentsRepo.updateDocument(documentId, {
+        convertedStorageKey: storageKey,
+        convertedMimeType:
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        convertedAt: new Date(),
+        status: "ready",
+      })
+    
+      // invalidate cache
+      await invalidateDocumentCache(documentId)
+
+      return {
+        success: true,
+        storageKey,
+      }
+    },
+    
+    // download document convert
+    async downloadConvertedDocument(userId: string, documentId: string) {
+      const doc = await requireDocumentPermission({
+        userId,
+        documentId,
+        permission: "view",
+      })
+    
+      if (!doc.convertedStorageKey) {
+        throw new APIError(
+          ErrCode.NotFound,
+          "Document has not been converted yet"
+        )
+      }
+    
+      const storage = getStorage()
+      return storage.getDownloadUrl({
+        storageKey: doc.convertedStorageKey,
+      })
+    }
+    
+  }

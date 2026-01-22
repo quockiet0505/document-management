@@ -8,6 +8,13 @@ export interface PresignedDownload {
      expiresIn: number
 }
    
+// add upload buffer input
+export interface UploadBufferInput {
+     buffer: Buffer
+     fileName: string
+     mimeType: string
+}
+   
 export interface StorageProvider {
      getUploadUrl(params: {
        fileName: string
@@ -17,5 +24,10 @@ export interface StorageProvider {
      getDownloadUrl(params: {
        storageKey: string
      }): Promise<PresignedDownload>
+
+     // add 
+     uploadBuffer(input: UploadBufferInput): Promise<{
+          storageKey: string
+     }>
 }
    

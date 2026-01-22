@@ -12,6 +12,7 @@ import { and, desc, eq, ilike, isNull } from "drizzle-orm"
 import {
   ListDocumentsParams,
   CreateDocumentData,
+  UpdateDocumentData,
 } from "./documents.types"
 
 
@@ -71,10 +72,16 @@ export const DocumentsRepo = {
   },
 
   // update document
-  updateDocument(documentId: string, data: Partial<CreateDocumentData>) {
+  updateDocument(
+    documentId: string,
+    data: UpdateDocumentData
+  ) {
     return db
       .update(documents)
-      .set(data)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
       .where(eq(documents.id, documentId))
   },
 

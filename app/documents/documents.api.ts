@@ -132,3 +132,24 @@ export const getDocumentSummary = api(
     return DocumentsService.getSummary(auth.userID, req.id)
   }
 )
+
+// api convert pdf -> docx
+// convert pdf -> docx
+export const convertDocument = api(
+  { method: "POST", path: "/v1/documents/:id/convert", auth: true },
+  async (req: IdRequest) => {
+    const auth = getAuthData()
+    return DocumentsService.convertDocument(auth.userID, req.id)
+  }
+)
+
+
+// download file word, after convert from pdf
+export const downloadConvertedDocument = api(
+  { method: "GET", path: "/v1/documents/:id/download-converted", auth: true },
+  async (req: IdRequest) => {
+    const auth = getAuthData()
+    return DocumentsService.downloadConvertedDocument(auth.userID, req.id)
+  }
+)
+

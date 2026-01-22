@@ -91,6 +91,29 @@ export interface CreateDocumentData {
   createdAt: Date
 }
 
+
+export interface UpdateDocumentData {
+  name?: string
+  folderId?: string
+
+  // file-related (upload new version)
+  storageKey?: string
+  size?: number
+  mimeType?: string
+
+  // system-managed fields
+  status?: "processing" | "ready" | "error"
+  externalTaskId?: string
+  convertedStorageKey?: string
+  convertedMimeType?: string
+  convertedAt?: Date
+  processingError?: string
+
+  latestVersion?: number
+  updatedAt?: Date
+}
+
+
 // version
 // uploading new version
 export interface UploadDocumentVersionInput{

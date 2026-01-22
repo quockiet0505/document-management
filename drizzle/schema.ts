@@ -70,7 +70,14 @@ import {
       // latest file info
       size: integer("size").notNull(),
       storageKey: text("storage_key").notNull(),
-    
+
+      // convert
+      convertedStorageKey: text("converted_storage_key"),
+      convertedMimeType: text("converted_mime_type"), 
+      convertedAt: timestamp("converted_at"),
+      externalTaskId: text("external_task_id"),
+      processingError: text("processing_error"),
+
       status: text("status")
         .$type<"processing" | "ready" | "error">()
         .default("processing"),

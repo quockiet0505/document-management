@@ -11,6 +11,9 @@ const BASE_URL = "http://localhost:4000"
 const UPLOAD_DIR = path.join(process.cwd(), "uploads")
 
 export class LocalStorage implements StorageProvider {
+  uploadBuffer(arg0: { buffer: Buffer<ArrayBufferLike>; fileName: string; mimeType: string }): { storageKey: any } | PromiseLike<{ storageKey: any }> {
+    throw new Error("Method not implemented.")
+  }
   async getUploadUrl(params: {
     fileName: string
     mimeType: string

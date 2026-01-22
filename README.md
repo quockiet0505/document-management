@@ -240,6 +240,10 @@ bunx vitest run --coverage
 # dotenv
 bun add dotenv
 
+bun add pdf-parse
+
+bun add mammoth
+
 # run docker
 docker compose up
 ```

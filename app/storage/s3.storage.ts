@@ -6,6 +6,7 @@ import type {
   StorageProvider,
   PresignedUpload,
   PresignedDownload,
+  UploadBufferInput,
 } from "./storage.interface"
 
 import dotenv from "dotenv"
@@ -20,13 +21,13 @@ console.log("🔧 S3 Storage Config:")
 console.log("Region:", process.env.AWS_REGION || 'not set')
 console.log("Bucket:", process.env.AWS_S3_BUCKET || 'not set')
 console.log("Key ID :", process.env.AWS_ACCESS_KEY_ID ? "***SET ID key***" : "NOT SET")
-console.log("Access Key:", process.env.AWS_ACCESS_KEY_ID ? "***SET access key ***" : "NOT SET")
+console.log("Access Key:", process.env.AWS_SECRET_ACCESS_KEY ? "***SET access key ***" : "NOT SET")
 
 const s3 = new S3Client({
   region: process.env.AWS_REGION || 'us-east-1',
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID || "no-key-ID",
-    secretAccessKey: process.env.AWS_ACCESS_KEY_ID ||"no-access-key",
+    secretAccessKey:process.env.AWS_SECRET_ACCESS_KEY ||"no-access-key",
   },
 })
 
@@ -68,5 +69,21 @@ export class S3Storage implements StorageProvider {
       downloadUrl,
       expiresIn: 300,
     }
+  }
+
+  // Upload buffer implementation
+  async uploadBuffer(input: UploadBufferInput): Promise<{ storageKey: string }> {
+    const storageKey = `${randomUUID()}-${input.fileName}`
+
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: BUCKET,
+        Key: storageKey,
+        Body: input.buffer,
+        ContentType: input.mimeType,
+      })
+    )
+
+    return { storageKey }
   }
 }
