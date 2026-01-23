@@ -34,6 +34,7 @@ const s3 = new S3Client({
 const BUCKET = process.env.AWS_S3_BUCKET
 
 export class S3Storage implements StorageProvider {
+  // implement getUploadUrl
   async getUploadUrl(params: {
     fileName: string
     mimeType: string
@@ -53,6 +54,7 @@ export class S3Storage implements StorageProvider {
     return { uploadUrl, storageKey }
   }
 
+  // implement getDownloadUrl
   async getDownloadUrl(params: {
     storageKey: string
   }): Promise<PresignedDownload> {

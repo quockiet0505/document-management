@@ -11,7 +11,6 @@
     "@types/pg": "^8.16.0",
     "@vitest/coverage-v8": "4.0.17",
     "drizzle-kit": "^0.31.8",
-    "encore": "^1.53.4",  
     "typescript": "^5.9.3",
     "vitest": "^4.0.17"
   },
@@ -25,7 +24,6 @@
     "convertapi": "^1.15.0",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",
-    "encore.dev": "^1.53.4",
     "form-data": "^4.0.5",
     "got": "^14.6.6",
     "jsonwebtoken": "^9.0.3",
@@ -33,11 +31,11 @@
     "mammoth": "^1.11.0",
     "pdf-parse": "^2.4.5",
     "pg": "^8.17.1",
-    "zod": "^4.3.5"
+    "zod": "^4.3.5",
+    "encore.dev": "^1.53.7"
   },
   "scripts": {
-    "dev": "encore run",                          
+    "dev": "encore run",
     "test": "vitest run"
   }
-
 }

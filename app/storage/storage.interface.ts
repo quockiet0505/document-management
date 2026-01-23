@@ -14,6 +14,13 @@ export interface UploadBufferInput {
      fileName: string
      mimeType: string
 }
+
+// export interface UploadBufferInput {
+//      buffer: Uint8Array
+//      fileName: string
+//      mimeType: string
+// }
+   
    
 export interface StorageProvider {
      getUploadUrl(params: {
