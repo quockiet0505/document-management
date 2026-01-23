@@ -11,6 +11,7 @@
     "@types/pg": "^8.16.0",
     "@vitest/coverage-v8": "4.0.17",
     "drizzle-kit": "^0.31.8",
+    "encore": "^1.53.4",  
     "typescript": "^5.9.3",
     "vitest": "^4.0.17"
   },
@@ -35,7 +36,8 @@
     "zod": "^4.3.5"
   },
   "scripts": {
-    "start": "encore run",
-    "build": "echo build step"
+    "dev": "encore run",                          
+    "test": "vitest run"
   }
+
 }

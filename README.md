@@ -273,9 +273,16 @@ This project provides a Docker setup for local development.
 - AWS S3 and Gemini AI are external managed services
 - These services are accessed via API keys in `.env` and are not containerized
 
-### Start services
+## Development Setup
+
+### 1. Start infrastructure
 ```bash
-docker compose up --build
+docker compose up -d
+```
+
+### 2. Run Encore backend
+```bash
+encore run
 ```
 
 ## Environment Variables
